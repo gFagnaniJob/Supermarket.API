@@ -21,8 +21,9 @@ namespace Supermarket.API.Services
       this._categoryRepository = categoryRepository;
     }
 
-    public async Task<IEnumerable<Product>> ListAsync() {
-        return await _productRepository.ListAsync();
+    public async Task<IEnumerable<Product>> ListAsync()
+    {
+      return await _productRepository.ListAsync();
     }
 
     public async Task<ProductResponse> SaveAsync(Product product)
@@ -43,5 +44,35 @@ namespace Supermarket.API.Services
         return new ProductResponse($"An error occurred when saving the product: {e.Message}");
       }
     }
+
+    public async Task<ProductResponse> UpdateAsync(int id, Product product)
+        {
+            var existingProduct = await _productRepository.FindByIdAsync(id);
+
+            if (existingProduct == null)
+                return new ProductResponse("Product not found.");
+
+            var existingCategory = await _categoryRepository.FindByIdAsync(product.CategoryId);
+            if (existingCategory == null)
+                return new ProductResponse("Invalid category.");
+
+            existingProduct.Name = product.Name;
+            existingProduct.UnitOfMeasurement = product.UnitOfMeasurement;
+            existingProduct.QuantityInPackage = product.QuantityInPackage;
+            existingProduct.CategoryId = product.CategoryId;
+
+            try
+            {
+                _productRepository.Update(existingProduct);
+                await _unitOfWork.CompleteAsync();
+
+                return new ProductResponse(existingProduct);
+            }
+            catch (Exception ex)
+            {
+                // Do some logging stuff
+                return new ProductResponse($"An error occurred when updating the product: {ex.Message}");
+            }
+        }
   }
 }
