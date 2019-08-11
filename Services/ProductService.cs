@@ -21,6 +21,7 @@ namespace Supermarket.API.Services
       this._categoryRepository = categoryRepository;
     }
 
+
     public async Task<IEnumerable<Product>> ListAsync()
     {
       return await _productRepository.ListAsync();
@@ -46,33 +47,52 @@ namespace Supermarket.API.Services
     }
 
     public async Task<ProductResponse> UpdateAsync(int id, Product product)
-        {
-            var existingProduct = await _productRepository.FindByIdAsync(id);
+    {
+      var existingProduct = await _productRepository.FindByIdAsync(id);
 
-            if (existingProduct == null)
-                return new ProductResponse("Product not found.");
+      if (existingProduct == null)
+        return new ProductResponse("Product not found.");
 
-            var existingCategory = await _categoryRepository.FindByIdAsync(product.CategoryId);
-            if (existingCategory == null)
-                return new ProductResponse("Invalid category.");
+      var existingCategory = await _categoryRepository.FindByIdAsync(product.CategoryId);
+      if (existingCategory == null)
+        return new ProductResponse("Invalid category.");
 
-            existingProduct.Name = product.Name;
-            existingProduct.UnitOfMeasurement = product.UnitOfMeasurement;
-            existingProduct.QuantityInPackage = product.QuantityInPackage;
-            existingProduct.CategoryId = product.CategoryId;
+      existingProduct.Name = product.Name;
+      existingProduct.UnitOfMeasurement = product.UnitOfMeasurement;
+      existingProduct.QuantityInPackage = product.QuantityInPackage;
+      existingProduct.CategoryId = product.CategoryId;
 
-            try
-            {
-                _productRepository.Update(existingProduct);
-                await _unitOfWork.CompleteAsync();
+      try
+      {
+        _productRepository.Update(existingProduct);
+        await _unitOfWork.CompleteAsync();
 
-                return new ProductResponse(existingProduct);
-            }
-            catch (Exception ex)
-            {
-                // Do some logging stuff
-                return new ProductResponse($"An error occurred when updating the product: {ex.Message}");
-            }
-        }
+        return new ProductResponse(existingProduct);
+      }
+      catch (Exception ex)
+      {
+        // Do some logging stuff
+        return new ProductResponse($"An error occurred when updating the product: {ex.Message}");
+      }
+    }
+    public async Task<ProductResponse> DeleteAsync(int id)
+    {
+      var existingProduct = await _productRepository.FindByIdAsync(id);
+
+      if (existingProduct == null)
+        return new ProductResponse("Product not found.");
+
+      try
+      {
+        _productRepository.Delete(existingProduct);
+        await _unitOfWork.CompleteAsync();
+
+        return new ProductResponse(existingProduct);
+      }
+      catch (Exception e)
+      {
+        return new ProductResponse($"An error occurred when deleting the product: {e.Message}");
+      }
+    }
   }
 }

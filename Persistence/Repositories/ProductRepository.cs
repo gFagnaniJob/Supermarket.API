@@ -33,5 +33,10 @@ namespace Supermarket.API.Persistence.Repositories
     {
       _context.Products.Update(product);
     }
+
+    public void Delete(Product product)
+    {
+      _context.Products.Remove(product);
+    }
   }
 }
